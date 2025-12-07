@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Hälsovakt | Nordsym AB</title>
+    <meta name="description" content="Automatiserad teknisk SEO-analys för svenska webbplatser.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Inter:wght@400;500;600&family=Source+Code+Pro:wght@500&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            /* NordSym Deep Space Palette (Default Dark) */
+            --nord-bg-primary: #0c1427;
+            --nord-bg-secondary: #1e3a8a;
+            --nord-cyan: #00D4FF;
+            --nord-cyan-dark: #00a3cc;
+            --nord-cyan-glow: rgba(0, 212, 255, 0.3);
+            --nord-text-primary: #F0F4F8;
+            --nord-text-secondary: #CBD5E0;
+            
+            /* Glassmorphism */
+            --glass-bg: rgba(12, 20, 39, 0.7);
+            --glass-border: rgba(0, 212, 255, 0.15);
+            --glass-highlight: rgba(255, 255, 255, 0.05);
+            
+            /* Status Colors */
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            
+            /* Spacing */
+            --container-width: 1200px;
+            --section-spacing: 6rem;
+        }
+
+        /* --- LIGHT MODE / BLUEPRINT THEME --- */
+        body[data-theme="light"] {
+            --nord-bg-primary: #FDFDFD;
+            --nord-cyan: #0077CC; /* Darker blue for contrast on white */
+            --nord-cyan-glow: rgba(0, 119, 204, 0.2);
+            --nord-text-primary: #0A2540;
+            --nord-text-secondary: #4B5563;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: #E5E7EB;
+            --glass-highlight: rgba(255, 255, 255, 0.8);
+            --nord-bg-secondary: #F3F4F6;
+        }
+
+        /* --- RESET & BASE --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: var(--nord-bg-primary);
+            color: var(--nord-text-primary);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            transition: background-color 0.5s ease, color 0.3s ease;
+            position: relative;
+        }
+
+        /* Dark Mode Background (Default) */
+        body:not([data-theme="light"]) {
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(30, 58, 138, 0.4) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 40%);
+        }
+
+        /* Light Mode Background (Blueprint Grid) */
+        body[data-theme="light"] {
+            background-image: 
+                linear-gradient(#E5E7EB 1px, transparent 1px),
+                linear-gradient(90deg, #E5E7EB 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Hide Stars in Light Mode */
+        body[data-theme="light"] .star { display: none; }
+
+        /* Specific Light Mode Overrides */
+        body[data-theme="light"] .audit-form {
+            background: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border-color: #D1D5DB;
+        }
+        body[data-theme="light"] .input-group input {
+            background: #F9FAFB;
+            border-color: #D1D5DB;
+            color: #111827;
+        }
+        body[data-theme="light"] .input-group input:focus {
+            border-color: var(--nord-cyan);
+            background: white;
+        }
+        body[data-theme="light"] .feature-card,
+        body[data-theme="light"] .pricing-card {
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-color: #E5E7EB;
+        }
+        body[data-theme="light"] .cta-button {
+            color: white; /* Ensure text is white on blue button */
+            background: linear-gradient(135deg, #0077CC 0%, #0284c7 100%);
+        }
+        body[data-theme="light"] .pain-point {
+            border-left-color: #E5E7EB;
+        }
+        body[data-theme="light"] .pain-point:hover {
+            border-left-color: var(--nord-cyan);
+        }
+        body[data-theme="light"] .faq-item {
+            background: white;
+            border-color: #E5E7EB;
+        }
+
+        /* --- STARFIELD ANIMATION --- */
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: float 30s infinite ease-in-out;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); opacity: 0.4; }
+            50% { transform: translateY(-30px); opacity: 0.8; }
+        }
+
+        /* --- THEME TOGGLE --- */
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            color: var(--nord-cyan);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--nord-cyan-glow);
+        }
+        
+        .theme-toggle:focus {
+            outline: 2px solid var(--nord-cyan);
+            outline-offset: 2px;
+        }
+
+        /* --- TYPOGRAPHY & LAYOUT --- */
+        h1, h2, h3 { font-family: 'Comfortaa', sans-serif; font-weight: 700; letter-spacing: -0.03em; }
+        h1 { font-size: 2.5rem; line-height: 1.1; margin-bottom: 1.5rem; }
+        h2 { font-size: 2rem; margin-bottom: 1rem; color: var(--nord-text-primary); text-align: center; }
+        p { color: var(--nord-text-secondary); margin-bottom: 1.5rem; }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        .container {
+            max-width: var(--container-width);
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* --- UTILITIES --- */
+        .text-cyan { color: var(--nord-cyan); }
+        .text-center { text-align: center; }
+        .mt-2 { margin-top: 2rem; }
+        .hidden { display: none !important; }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 0;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--nord-text-primary) 0%, var(--nord-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Gradient Adjustment for Light Mode Text */
+        body[data-theme="light"] .hero h1 span {
+             background: linear-gradient(135deg, #0284c7 0%, #0077CC 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subhead {
+            font-size: 1.125rem;
+            max-width: 600px;
+            margin: 0 auto 3rem auto;
+        }
+
+        /* --- GLASS FORM --- */
+        .audit-form {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 2rem;
+            padding: 2.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .audit-form::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--nord-cyan-glow), transparent);
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 1.25rem 3rem 1.25rem 1.5rem;
+            background: rgba(12, 20, 39, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 99px;
+            color: var(--nord-cyan);
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--nord-cyan);
+            box-shadow: 0 0 0 4px var(--nord-cyan-glow);
+            background: rgba(12, 20, 39, 0.9);
+        }
+
+        .input-group input.valid { border-color: var(--success); }
+        .input-group input.invalid { border-color: var(--error); }
+
+        .validation-icon {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.25rem;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            opacity: 0;
+        }
+
+        .input-group input.valid + .validation-icon { opacity: 1; color: var(--success); content: "✓"; }
+        .input-group input.invalid + .validation-icon { opacity: 1; color: var(--error); content: "✕"; }
+
+        .cta-button {
+            width: 100%;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, var(--nord-cyan) 0%, #0ea5e9 100%);
+            border: none;
+            border-radius: 99px;
+            color: #0c1427;
+            font-family: 'Comfortaa', sans-serif;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px var(--nord-cyan-glow);
+        }
+
+        .cta-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+
+        .trust-signal {
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            margin-bottom: 0;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        /* --- LOADING SPINNER --- */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(12, 20, 39, 0.3);
+            border-radius: 50%;
+            border-top-color: #0c1427;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .cta-button.loading .spinner { display: block; }
+        .cta-button.loading span { display: none; }
+
+        /* --- SECTIONS --- */
+        section { padding: var(--section-spacing) 0; }
+
+        /* --- PAIN POINTS (Grid) --- */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .pain-point {
+            padding: 1.5rem;
+            border-left: 2px solid var(--nord-bg-secondary);
+            transition: border-color 0.3s;
+        }
+        .pain-point:hover { border-color: var(--nord-cyan); }
+        .pain-point h3 { font-size: 1.25rem; margin-bottom: 0.5rem; font-family: 'Inter', sans-serif; font-weight: 600; }
+
+        /* --- FEATURE CARDS --- */
+        .feature-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--nord-cyan);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-card .icon-wrapper {
+            width: 3.5rem;
+            height: 3.5rem;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--nord-cyan);
+            font-size: 1.75rem;
+        }
+
+        /* --- PRICING --- */
+        .pricing-section {
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 212, 255, 0.03) 50%, transparent 100%);
+        }
+
+        .pricing-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--nord-cyan);
+            border-radius: 2rem;
+            padding: 3rem;
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.1);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card::after {
+            content: 'POPULÄR';
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--nord-cyan);
+            color: #0c1427;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+        }
+        
+        body[data-theme="light"] .pricing-card::after {
+             color: white; /* Contrast fix for light mode */
+        }
+
+        .price-tag {
+            font-family: 'Comfortaa', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--nord-text-primary);
+            margin: 1rem 0;
+            display: block;
+        }
+        .price-tag small { font-size: 1rem; color: var(--nord-text-secondary); font-weight: 400; }
+
+        .benefit-list {
+            text-align: left;
+            margin: 2rem 0;
+            display: inline-block;
+        }
+        .benefit-list li {
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .benefit-list i { color: var(--success); }
+
+        /* --- FAQ --- */
+        .faq-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: background 0.3s;
+        }
+        .faq-item:hover { background: rgba(255, 255, 255, 0.05); }
+
+        summary {
+            padding: 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            list-style: none;
+        }
+        summary::-webkit-details-marker { display: none; }
+        summary i { transition: transform 0.3s; color: var(--nord-cyan); }
+        details[open] summary i { transform: rotate(180deg); }
+        
+        .faq-content {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            color: var(--nord-text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 1rem;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            padding: 4rem 0 2rem;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+            font-size: 0.875rem;
+            color: var(--nord-text-secondary);
+        }
+        .footer-logo {
+            font-family: 'Comfortaa', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--nord-text-primary);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* --- COOKIE CONSENT MANAGER --- */
+        .cookie-consent {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 380px;
+            max-width: calc(100% - 4rem);
+            z-index: 999;
+            
+            /* Dark Mode (Deep Space) Default */
+            background: rgba(12, 20, 39, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--nord-cyan);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 0 20px var(--nord-cyan-glow);
+            
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .cookie-consent.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        /* Light Mode (Blueprint) Overrides */
+        body[data-theme="light"] .cookie-consent {
+            background: #FFFFFF;
+            border: 1px solid #0A2540; /* Blueprint Ink */
+            box-shadow: 8px 8px 0px rgba(10, 37, 64, 0.1); /* Sharp shadow */
+            border-radius: 0.5rem; /* More angular for blueprint feel */
+        }
+
+        .cookie-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .cookie-logo {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+
+        .cookie-text {
+            font-size: 0.9rem;
+            color: var(--nord-text-secondary);
+            line-height: 1.5;
+        }
+        
+        body[data-theme="light"] .cookie-text {
+            color: #4B5563;
+        }
+
+        .cookie-link {
+            color: var(--nord-cyan);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            font-size: 0.85rem;
+        }
+
+        .cookie-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .cookie-btn {
+            flex: 1;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 99px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Primary Button */
+        .cookie-btn.primary {
+            background: var(--nord-cyan);
+            color: #0c1427;
+            border: none;
+        }
+        
+        .cookie-btn.primary:hover {
+            box-shadow: 0 0 10px var(--nord-cyan-glow);
+            transform: translateY(-1px);
+        }
+
+        /* Light Mode Primary Button override */
+        body[data-theme="light"] .cookie-btn.primary {
+            background: #0077CC;
+            color: white;
+        }
+
+        /* Secondary Button */
+        .cookie-btn.secondary {
+            background: transparent;
+            color: var(--nord-text-secondary);
+            border: 1px solid var(--glass-border);
+        }
+
+        .cookie-btn.secondary:hover {
+            border-color: var(--nord-cyan);
+            color: var(--nord-text-primary);
+        }
+
+        /* Light Mode Secondary Button override */
+        body[data-theme="light"] .cookie-btn.secondary {
+            border-color: #E5E7EB;
+            color: #4B5563;
+        }
+        body[data-theme="light"] .cookie-btn.secondary:hover {
+            border-color: #0077CC;
+            color: #0A2540;
+        }
+
+        /* --- SUCCESS MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(12, 20, 39, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .success-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--success);
+            padding: 3rem;
+            border-radius: 2rem;
+            text-align: center;
+            max-width: 500px;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .success-card { transform: scale(1); }
+        
+        .success-icon {
+            width: 80px; height: 80px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: var(--success);
+            font-size: 2.5rem;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (min-width: 768px) {
+            .hero h1 { font-size: 3.5rem; }
+            .grid-3 { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (min-width: 1024px) {
+            .hero h1 { font-size: 4rem; }
+            .grid-3 { grid-template-columns: repeat(3, 1fr); }
+            .audit-form { min-width: 500px; }
+        }
+
+        @media (max-width: 640px) {
+            .audit-form { padding: 1.5rem; border-radius: 1.5rem; }
+            .cta-button { font-size: 1rem; padding: 1rem; }
+            h1 { font-size: 2.25rem; }
+            
+            /* Toggle Button Positioning for Mobile */
+            .theme-toggle {
+                top: 1rem;
+                right: 1rem;
+                width: 45px;
+                height: 45px;
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- THEME TOGGLE BUTTON -->
+    <button id="themeToggle" class="theme-toggle" aria-label="Ändra färgtema">
+        <i class="ph-bold ph-moon theme-icon"></i>
+    </button>
+
+    <!-- SUCCESS MODAL -->
+    <div id="successModal" class="modal-overlay">
+        <div class="success-card">
+            <div class="success-icon">
+                <i class="ph-bold ph-check"></i>
+            </div>
+            <h2>Analys Påbörjad!</h2>
+            <p>Tack! Vi har mottagit din beställning för <span id="successUrl" class="text-cyan font-mono"></span>.</p>
+            <p style="font-size: 0.9rem;">Din rapport genereras nu och skickas till din e-post inom 5 minuter.</p>
+            <button onclick="window.location.href='/'" class="cta-button" style="margin-top: 1.5rem; background: transparent; border: 1px solid var(--glass-border); color: var(--nord-text-primary);">Stäng</button>
+        </div>
+    </div>
+
+    <!-- COOKIE CONSENT BANNER -->
+    <div id="cookieConsent" class="cookie-consent">
+        <div class="cookie-header">
+            <img src="https://raw.githubusercontent.com/GusHem/Logga-utan-text/refs/heads/main/Final%20logo%20no%20text.svg" alt="Nordsym Logo" class="cookie-logo">
+            <span style="font-family: 'Comfortaa', sans-serif; font-weight: 700; font-size: 0.9rem;">Systemmeddelande</span>
+        </div>
+        <p class="cookie-text">
+            Vi optimerar systemet. Cookies används för prestanda och analys. 
+            <br>
+            <a href="#privacy-policy-en" class="cookie-link">Integritetspolicy</a>
+        </p>
+        <div class="cookie-actions">
+            <button id="cookieSettings" class="cookie-btn secondary">Inställningar</button>
+            <button id="cookieAccept" class="cookie-btn primary">Acceptera Systemkrav</button>
+        </div>
+    </div>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container hero-content">
+            <h1>Hitta Dolda <span class="text-cyan">SEO-Problem</span><br>Innan Google Gör Det</h1>
+            <p class="hero-subhead">Vi scannar din webbplats efter tekniska fel som dödar din ranking. Få en komplett åtgärdsplan på 5 minuter.</p>
+            
+            <form id="auditForm" class="audit-form">
+                <div class="input-group">
+                    <input 
+                        type="url" 
+                        id="websiteUrl" 
+                        placeholder="https://dinwebbplats.se" 
+                        required 
+                        autocomplete="url"
+                    />
+                    <i id="validationIcon" class="ph-bold ph-x validation-icon" style="opacity: 0;"></i>
+                </div>
+                
+                <button type="submit" id="submitBtn" class="cta-button" disabled>
+                    <span>Analysera Min Webbplats</span>
+                    <span style="opacity: 0.7; font-weight: 400;">| 499 SEK</span>
+                    <div class="spinner"></div>
+                </button>
+                
+                <p class="trust-signal">
+                    <i class="ph-fill ph-shield-check text-cyan"></i> 
+                    Säker betalning via Stripe • Svar inom 5 min
+                </p>
+            </form>
+        </div>
+    </section>
+
+    <!-- PROBLEM SECTION -->
+    <section id="problem">
+        <div class="container">
+            <h2>Varför syns du inte på Google?</h2>
+            <p class="text-center" style="max-width: 600px; margin: 0 auto;">Google uppdaterar sin algoritm 3000+ gånger per år. Det är oftast inte innehållet det är fel på, utan tekniken.</p>
+            
+            <div class="grid-3">
+                <div class="pain-point">
+                    <h3>Långsamma Laddtider</h3>
+                    <p>Varje sekunds fördröjning minskar konverteringen med 7%. Vi hittar flaskhalsarna.</p>
+                </div>
+                <div class="pain-point">
+                    <h3>Brutna Länkar</h3>
+                    <p>404-sidor signalerar till Google att din sajt är övergiven. Vi hittar dem alla.</p>
+                </div>
+                <div class="pain-point">
+                    <h3>Mobil-ovänlig</h3>
+                    <p>Google prioriterar "Mobile First". Om din sajt strular i mobilen, strular den i sökresultaten.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SOLUTION SECTION -->
+    <section id="features">
+        <div class="container">
+            <h2 class="text-center" style="margin-bottom: 3rem;">Vad vi analyserar</h2>
+            <div class="grid-3">
+                <!-- Card 1 -->
+                <div class="feature-card">
+                    <div class="icon-wrapper">
+                        <i class="ph-duotone ph-gauge"></i>
+                    </div>
+                    <h3>Teknisk Hälsa</h3>
+                    <p>Djupdykning i Core Web Vitals, serverns svarstider, SSL-certifikat och kodstruktur.</p>
+                </div>
+                
+                <!-- Card 2 -->
+                <div class="feature-card">
+                    <div class="icon-wrapper">
+                        <i class="ph-duotone ph-magnifying-glass"></i>
+                    </div>
+                    <h3>SEO Fundamentals</h3>
+                    <p>Granskning av meta-titlar, beskrivningar, H1-taggar, alt-texter och XML-sitemaps.</p>
+                </div>
+                
+                <!-- Card 3 -->
+                <div class="feature-card">
+                    <div class="icon-wrapper">
+                        <i class="ph-duotone ph-chart-line-up"></i>
+                    </div>
+                    <h3>Konkurrenskraft</h3>
+                    <p>Vi kollar din domänauktoritet och jämför grundläggande mätvärden mot best practice.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING SECTION -->
+    <section id="pricing" class="pricing-section">
+        <div class="container">
+            <div class="pricing-card">
+                <h3>SEO Hälsorapport</h3>
+                <span class="price-tag">499 SEK <small>engångs</small></span>
+                <p>Inga prenumerationer. Bara ren data.</p>
+                
+                <ul class="benefit-list">
+                    <li><i class="ph-bold ph-check"></i> Teknisk analys (20+ punkter)</li>
+                    <li><i class="ph-bold ph-check"></i> Prioriterad åtgärdslista</li>
+                    <li><i class="ph-bold ph-check"></i> PDF-rapport till din mejl</li>
+                    <li><i class="ph-bold ph-check"></i> Leverans inom 5 minuter</li>
+                </ul>
+                
+                <button onclick="document.getElementById('websiteUrl').focus()" class="cta-button">
+                    Starta Analys Nu
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section id="faq">
+        <div class="container" style="max-width: 800px;">
+            <h2>Vanliga Frågor</h2>
+            <div class="faq-list mt-2">
+                <details class="faq-item">
+                    <summary>Vad exakt får jag i rapporten? <i class="ph-bold ph-caret-down"></i></summary>
+                    <div class="faq-content">
+                        Du får en PDF som är uppdelad i tre delar: En översikt för chefen, en åtgärdslista för marknadsföraren, och en teknisk specifikation för utvecklaren.
+                    </div>
+                </details>
+                
+                <details class="faq-item">
+                    <summary>Behöver jag ge er inloggningsuppgifter? <i class="ph-bold ph-caret-down"></i></summary>
+                    <div class="faq-content">
+                        Nej, aldrig. Vi analyserar din webbplats utifrån (precis som Google gör). Vi behöver bara din URL.
+                    </div>
+                </details>
+                
+                <details class="faq-item">
+                    <summary>Hur betalar jag? <i class="ph-bold ph-caret-down"></i></summary>
+                    <div class="faq-content">
+                        Vi använder Stripe för säker kortbetalning. Vi sparar aldrig dina kortuppgifter. Kvitto (med moms) skickas automatiskt.
+                    </div>
+                </details>
+                
+                <details class="faq-item">
+                    <summary>Fungerar det på alla plattformar? <i class="ph-bold ph-caret-down"></i></summary>
+                    <div class="faq-content">
+                        Ja! Oavsett om du använder WordPress, Shopify, Wix eller en skräddarsydd lösning så kan vi analysera HTML-koden som webbplatsen genererar.
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <span class="footer-logo">Nordsym</span>
+            <p>&copy; 2025 Nordsym AB. Alla rättigheter reserverade.</p>
+            <div style="margin-top: 1rem; opacity: 0.6;">
+                <a href="#">Integritetspolicy</a> • <a href="#">Villkor</a> • <a href="mailto:support@nordsym.se">support@nordsym.se</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('auditForm');
+            const urlInput = document.getElementById('websiteUrl');
+            const submitBtn = document.getElementById('submitBtn');
+            const validationIcon = document.getElementById('validationIcon');
+            const successModal = document.getElementById('successModal');
+            
+            // --- THEME TOGGLE LOGIC ---
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = themeToggle.querySelector('.theme-icon');
+            let currentTheme = localStorage.getItem('theme') || 'dark';
+
+            // Function to update icon
+            const updateThemeIcon = (theme) => {
+                if (theme === 'dark') {
+                    themeIcon.className = 'ph-bold ph-moon theme-icon';
+                } else {
+                    themeIcon.className = 'ph-bold ph-sun theme-icon';
+                }
+            };
+
+            // Apply saved theme on load
+            if (currentTheme === 'light') {
+                document.body.setAttribute('data-theme', 'light');
+            }
+            updateThemeIcon(currentTheme);
+
+            themeToggle.addEventListener('click', () => {
+                currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                if (currentTheme === 'light') {
+                    document.body.setAttribute('data-theme', 'light');
+                } else {
+                    document.body.removeAttribute('data-theme');
+                }
+                
+                localStorage.setItem('theme', currentTheme);
+                updateThemeIcon(currentTheme);
+            });
+
+            // --- STARFIELD GENERATION ---
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                // Random delay to create organic movement
+                star.style.animationDelay = `-${Math.random() * 30}s`;
+                // Random duration
+                star.style.animationDuration = `${20 + Math.random() * 20}s`;
+                // Random opacity
+                star.style.opacity = Math.random() * 0.5 + 0.3;
+                document.body.appendChild(star);
+            }
+
+            // --- COOKIE CONSENT LOGIC ---
+            const cookieBanner = document.getElementById('cookieConsent');
+            const cookieAcceptBtn = document.getElementById('cookieAccept');
+            const cookieSettingsBtn = document.getElementById('cookieSettings');
+
+            // Check if user has already accepted
+            if (!localStorage.getItem('nordsym_cookie_consent')) {
+                // Delay showing the banner slightly for better UX (fade-in)
+                setTimeout(() => {
+                    cookieBanner.classList.add('active');
+                }, 1000);
+            }
+
+            cookieAcceptBtn.addEventListener('click', () => {
+                // Hide banner
+                cookieBanner.classList.remove('active');
+                // Save consent
+                localStorage.setItem('nordsym_cookie_consent', 'true');
+            });
+
+            cookieSettingsBtn.addEventListener('click', () => {
+                // For now, settings just logs (v1 scope) or could toggle banner
+                console.log("Cookie settings clicked");
+                // Optional: Implement settings modal logic here
+                alert("Inställningar för cookies är inte tillgängliga i denna demo.");
+            });
+
+            // --- EXISTING FORM LOGIC ---
+            const STRIPE_LINK_BASE = "https://buy.stripe.com/PLACEHOLDER"; 
+            const N8N_WEBHOOK_URL = "https://nordsym.app.n8n.cloud/webhook/seo-audit";
+
+            const isValidUrl = (string) => {
+                try {
+                    const url = new URL(string);
+                    return url.protocol === "http:" || url.protocol === "https:";
+                } catch (_) {
+                    return false;
+                }
+            };
+
+            urlInput.addEventListener('input', (e) => {
+                const val = e.target.value;
+                const icon = document.querySelector('#validationIcon');
+                
+                if (val.length === 0) {
+                    urlInput.classList.remove('valid', 'invalid');
+                    icon.style.opacity = '0';
+                    submitBtn.disabled = true;
+                    return;
+                }
+
+                if (isValidUrl(val)) {
+                    urlInput.classList.remove('invalid');
+                    urlInput.classList.add('valid');
+                    icon.className = "ph-bold ph-check validation-icon";
+                    icon.style.color = "var(--success)";
+                    icon.style.opacity = '1';
+                    submitBtn.disabled = false;
+                } else {
+                    urlInput.classList.remove('valid');
+                    urlInput.classList.add('invalid');
+                    icon.className = "ph-bold ph-warning validation-icon";
+                    icon.style.color = "var(--error)";
+                    icon.style.opacity = '1';
+                    submitBtn.disabled = true;
+                }
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const url = urlInput.value;
+
+                if (!isValidUrl(url)) return;
+
+                submitBtn.classList.add('loading');
+                submitBtn.disabled = true;
+                urlInput.disabled = true;
+
+                sessionStorage.setItem('pendingAuditUrl', url);
+
+                setTimeout(() => {
+                    const redirectUrl = `${STRIPE_LINK_BASE}?client_reference_id=${encodeURIComponent(url)}`;
+                    // MOCK SUCCESS FOR DEMO:
+                    const newUrl = new URL(window.location.href);
+                    newUrl.searchParams.set('success', 'true');
+                    window.location.href = newUrl.toString();
+                }, 800);
+            });
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'true') {
+                const auditedUrl = sessionStorage.getItem('pendingAuditUrl') || "din webbplats";
+                document.getElementById('successUrl').textContent = auditedUrl;
+                successModal.classList.add('active');
+                
+                fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: auditedUrl,
+                        timestamp: new Date().toISOString(),
+                        source: 'seohalsovakt_web',
+                        status: 'paid'
+                    })
+                }).catch(err => console.log('Webhook trigger logic (mocked):', err));
+
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+    </script>
+</body>
+</html>
