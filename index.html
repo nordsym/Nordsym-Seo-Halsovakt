@@ -6,6 +6,31 @@
     <title>SEO Hälsovakt | Nordsym AB</title>
     <meta name="description" content="Automatiserad teknisk SEO-analys för svenska webbplatser.">
     
+    <!-- SEO Enhancement -->
+    <meta name="keywords" content="SEO analys, teknisk SEO, webbplats audit, Core Web Vitals, Google ranking Sverige">
+    <meta name="author" content="NordSym AB">
+    <!-- Note: Update this canonical if you use a custom domain later -->
+    <link rel="canonical" href="https://seohalsovakt.nordsym.se">
+
+    <!-- Open Graph (Social Sharing) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="SEO Hälsovakt | Hitta Dolda SEO-Problem">
+    <meta property="og:description" content="Automatiserad teknisk SEO-analys för 499 SEK. Rapport levereras på 5 minuter.">
+    <meta property="og:url" content="https://seohalsovakt.nordsym.se">
+    <meta property="og:site_name" content="NordSym SEO Hälsovakt">
+    <meta property="og:locale" content="sv_SE">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SEO Hälsovakt | Automatiserad SEO-analys">
+    <meta name="twitter:description" content="Hitta dolda SEO-problem innan Google gör det. 499 SEK • 5 minuter">
+
+    <!-- Favicon (Emoji) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    
+    <!-- Analytics (Privacy-friendly Plausible option) -->
+    <script defer data-domain="seohalsovakt.nordsym.se" src="https://plausible.io/js/script.js"></script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -693,6 +718,22 @@
                 height: 45px;
                 font-size: 1.25rem;
             }
+
+            /* Prevent iOS zoom on input focus */
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+
+            /* Better touch targets */
+            .cta-button {
+                min-height: 48px;
+            }
+
+            /* Success modal mobile optimization */
+            .success-card {
+                margin: 1rem;
+                padding: 2rem 1.5rem;
+            }
         }
     </style>
 </head>
@@ -976,8 +1017,8 @@
                 alert("Inställningar för cookies är inte tillgängliga i denna demo.");
             });
 
-            // --- EXISTING FORM LOGIC ---
-            const STRIPE_LINK_BASE = "https://buy.stripe.com/PLACEHOLDER"; 
+            // --- CONFIGURATION & UTILS ---
+            const STRIPE_LINK_BASE = "https://buy.stripe.com/14A5kF1NWh18glm0yI"; 
             const N8N_WEBHOOK_URL = "https://nordsym.app.n8n.cloud/webhook/seo-audit";
 
             const isValidUrl = (string) => {
@@ -989,6 +1030,37 @@
                 }
             };
 
+            // --- WEBHOOK TRIGGER (WITH RETRY) ---
+            const triggerWebhook = async (auditedUrl, retries = 3) => {
+                try {
+                    const response = await fetch(N8N_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: auditedUrl,
+                            timestamp: new Date().toISOString(),
+                            source: 'seohalsovakt_production',
+                            status: 'paid',
+                            sessionId: sessionStorage.getItem('auditTimestamp'),
+                            stripeProduct: 'prod_TYqm5wk2KDSum6'
+                        })
+                    });
+                    
+                    if (!response.ok && retries > 0) {
+                        console.warn(`Webhook retry ${4-retries}/3...`);
+                        setTimeout(() => triggerWebhook(auditedUrl, retries - 1), 2000 * (4-retries));
+                    } else if (response.ok) {
+                        console.log('✅ Audit queued successfully');
+                    }
+                } catch (err) {
+                    console.warn('Webhook delivery pending:', err);
+                    if (retries > 0) {
+                        setTimeout(() => triggerWebhook(auditedUrl, retries - 1), 2000 * (4-retries));
+                    }
+                }
+            };
+
+            // --- INPUT EVENT HANDLING ---
             urlInput.addEventListener('input', (e) => {
                 const val = e.target.value;
                 const icon = document.querySelector('#validationIcon');
@@ -1017,44 +1089,53 @@
                 }
             });
 
+            // --- FORM SUBMISSION ---
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const url = urlInput.value;
 
-                if (!isValidUrl(url)) return;
+                if (!isValidUrl(url)) {
+                    alert('⚠️ Vänligen ange en giltig URL (börjar med https://)');
+                    return;
+                }
 
-                submitBtn.classList.add('loading');
-                submitBtn.disabled = true;
-                urlInput.disabled = true;
+                try {
+                    // UI Loading State
+                    submitBtn.classList.add('loading');
+                    submitBtn.disabled = true;
+                    urlInput.disabled = true;
 
-                sessionStorage.setItem('pendingAuditUrl', url);
+                    // Store for post-payment webhook
+                    sessionStorage.setItem('pendingAuditUrl', url);
+                    sessionStorage.setItem('auditTimestamp', Date.now());
 
-                setTimeout(() => {
-                    const redirectUrl = `${STRIPE_LINK_BASE}?client_reference_id=${encodeURIComponent(url)}`;
-                    // MOCK SUCCESS FOR DEMO:
-                    const newUrl = new URL(window.location.href);
-                    newUrl.searchParams.set('success', 'true');
-                    window.location.href = newUrl.toString();
-                }, 800);
+                    // Redirect to Stripe (Live Production)
+                    setTimeout(() => {
+                        const stripeUrl = `${STRIPE_LINK_BASE}?client_reference_id=${encodeURIComponent(url)}`;
+                        window.location.href = stripeUrl;
+                    }, 800);
+
+                } catch (error) {
+                    // Reset UI on error
+                    submitBtn.classList.remove('loading');
+                    submitBtn.disabled = false;
+                    urlInput.disabled = false;
+                    alert('❌ Ett tekniskt fel uppstod. Vänligen försök igen eller kontakta support@nordsym.se');
+                    console.error('Form submission error:', error);
+                }
             });
 
+            // --- SUCCESS HANDLER ---
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('success') === 'true') {
                 const auditedUrl = sessionStorage.getItem('pendingAuditUrl') || "din webbplats";
                 document.getElementById('successUrl').textContent = auditedUrl;
                 successModal.classList.add('active');
                 
-                fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        url: auditedUrl,
-                        timestamp: new Date().toISOString(),
-                        source: 'seohalsovakt_web',
-                        status: 'paid'
-                    })
-                }).catch(err => console.log('Webhook trigger logic (mocked):', err));
+                // Trigger Webhook with Retries
+                triggerWebhook(auditedUrl);
 
+                // Clean URL
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
         });
