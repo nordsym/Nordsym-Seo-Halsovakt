@@ -30,6 +30,7 @@
     
     <!-- Analytics (Privacy-friendly Plausible option) -->
     <script defer data-domain="seohalsovakt.nordsym.se" src="https://plausible.io/js/script.js"></script>
+    <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -368,6 +369,46 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .cta-button.loading .spinner { display: block; }
         .cta-button.loading span { display: none; }
+
+        /* --- FULL SCREEN LOADING OVERLAY --- */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(12, 20, 39, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .loading-overlay.active { opacity: 1; pointer-events: all; }
+        
+        body[data-theme="light"] .loading-overlay {
+             background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .loading-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--nord-cyan);
+            padding: 2.5rem;
+            border-radius: 2rem;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.2);
+        }
+
+        .big-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 212, 255, 0.2);
+            border-top: 4px solid var(--nord-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
 
         /* --- SECTIONS --- */
         section { padding: var(--section-spacing) 0; }
@@ -739,6 +780,15 @@
 </head>
 <body>
 
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="big-spinner"></div>
+            <h3 style="margin: 0; font-family: 'Comfortaa';">Skickar dig till Stripe...</h3>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">Säker betalning påbörjas.</p>
+        </div>
+    </div>
+
     <!-- THEME TOGGLE BUTTON -->
     <button id="themeToggle" class="theme-toggle" aria-label="Ändra färgtema">
         <i class="ph-bold ph-moon theme-icon"></i>
@@ -750,9 +800,9 @@
             <div class="success-icon">
                 <i class="ph-bold ph-check"></i>
             </div>
-            <h2>Analys Påbörjad!</h2>
-            <p>Tack! Vi har mottagit din beställning för <span id="successUrl" class="text-cyan font-mono"></span>.</p>
-            <p style="font-size: 0.9rem;">Din rapport genereras nu och skickas till din e-post inom 5 minuter.</p>
+            <h2>Betalning Genomförd!</h2>
+            <p style="margin-bottom: 0.5rem;">Din SEO-analys av <span id="successUrl" class="text-cyan font-mono" style="font-weight: 600;"></span> startar nu.</p>
+            <p style="font-size: 0.9rem; color: var(--nord-text-secondary);">Du får PDF-rapporten via email inom 5-10 minuter.</p>
             <button onclick="window.location.href='/'" class="cta-button" style="margin-top: 1.5rem; background: transparent; border: 1px solid var(--glass-border); color: var(--nord-text-primary);">Stäng</button>
         </div>
     </div>
@@ -795,6 +845,7 @@
                 <button type="submit" id="submitBtn" class="cta-button" disabled>
                     <span>Analysera Min Webbplats</span>
                     <span style="opacity: 0.7; font-weight: 400;">| 499 SEK</span>
+                    <!-- Spinner in button kept but not used with new overlay flow -->
                     <div class="spinner"></div>
                 </button>
                 
@@ -941,13 +992,13 @@
             const submitBtn = document.getElementById('submitBtn');
             const validationIcon = document.getElementById('validationIcon');
             const successModal = document.getElementById('successModal');
+            const loadingOverlay = document.getElementById('loadingOverlay');
             
             // --- THEME TOGGLE LOGIC ---
             const themeToggle = document.getElementById('themeToggle');
             const themeIcon = themeToggle.querySelector('.theme-icon');
             let currentTheme = localStorage.getItem('theme') || 'dark';
 
-            // Function to update icon
             const updateThemeIcon = (theme) => {
                 if (theme === 'dark') {
                     themeIcon.className = 'ph-bold ph-moon theme-icon';
@@ -956,7 +1007,6 @@
                 }
             };
 
-            // Apply saved theme on load
             if (currentTheme === 'light') {
                 document.body.setAttribute('data-theme', 'light');
             }
@@ -981,11 +1031,8 @@
                 star.className = 'star';
                 star.style.left = `${Math.random() * 100}%`;
                 star.style.top = `${Math.random() * 100}%`;
-                // Random delay to create organic movement
                 star.style.animationDelay = `-${Math.random() * 30}s`;
-                // Random duration
                 star.style.animationDuration = `${20 + Math.random() * 20}s`;
-                // Random opacity
                 star.style.opacity = Math.random() * 0.5 + 0.3;
                 document.body.appendChild(star);
             }
@@ -995,31 +1042,25 @@
             const cookieAcceptBtn = document.getElementById('cookieAccept');
             const cookieSettingsBtn = document.getElementById('cookieSettings');
 
-            // Check if user has already accepted
             if (!localStorage.getItem('nordsym_cookie_consent')) {
-                // Delay showing the banner slightly for better UX (fade-in)
                 setTimeout(() => {
                     cookieBanner.classList.add('active');
                 }, 1000);
             }
 
             cookieAcceptBtn.addEventListener('click', () => {
-                // Hide banner
                 cookieBanner.classList.remove('active');
-                // Save consent
                 localStorage.setItem('nordsym_cookie_consent', 'true');
             });
 
             cookieSettingsBtn.addEventListener('click', () => {
-                // For now, settings just logs (v1 scope) or could toggle banner
                 console.log("Cookie settings clicked");
-                // Optional: Implement settings modal logic here
                 alert("Inställningar för cookies är inte tillgängliga i denna demo.");
             });
 
             // --- CONFIGURATION & UTILS ---
             const STRIPE_LINK_BASE = "https://buy.stripe.com/dRm9AVakseT08SUchqcMM05"; 
-            const N8N_WEBHOOK_URL = "https://nordsym.app.n8n.cloud/webhook/v1/seo-audit";
+            const N8N_WEBHOOK_URL = "https://nordsym.app.n8n.cloud/webhook/v1/seo-audit-form";
 
             const isValidUrl = (string) => {
                 try {
@@ -1030,39 +1071,18 @@
                 }
             };
 
-            // --- WEBHOOK TRIGGER (WITH RETRY) ---
-            const triggerWebhook = async (auditedUrl, retries = 3) => {
-                try {
-                    const response = await fetch(N8N_WEBHOOK_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            url: auditedUrl,
-                            timestamp: new Date().toISOString(),
-                            source: 'seohalsovakt_production',
-                            status: 'paid',
-                            sessionId: sessionStorage.getItem('auditTimestamp'),
-                            stripeProduct: 'prod_TYqm5wk2KDSum6'
-                        })
-                    });
-                    
-                    if (!response.ok && retries > 0) {
-                        console.warn(`Webhook retry ${4-retries}/3...`);
-                        setTimeout(() => triggerWebhook(auditedUrl, retries - 1), 2000 * (4-retries));
-                    } else if (response.ok) {
-                        console.log('✅ Audit queued successfully');
-                    }
-                } catch (err) {
-                    console.warn('Webhook delivery pending:', err);
-                    if (retries > 0) {
-                        setTimeout(() => triggerWebhook(auditedUrl, retries - 1), 2000 * (4-retries));
-                    }
+            // Analytics helper
+            const trackEvent = (eventName, props = {}) => {
+                if (window.plausible) {
+                    window.plausible(eventName, { props: props });
+                } else {
+                    console.log('📊 Plausible Event:', eventName, props);
                 }
             };
 
             // --- INPUT EVENT HANDLING ---
             urlInput.addEventListener('input', (e) => {
-                const val = e.target.value;
+                const val = e.target.value.trim();
                 const icon = document.querySelector('#validationIcon');
                 
                 if (val.length === 0) {
@@ -1089,54 +1109,81 @@
                 }
             });
 
-            // --- FORM SUBMISSION ---
+            // --- FORM SUBMISSION (REDIRECT TO STRIPE) ---
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const url = urlInput.value;
+                const url = urlInput.value.trim();
 
                 if (!isValidUrl(url)) {
                     alert('⚠️ Vänligen ange en giltig URL (börjar med https://)');
                     return;
                 }
 
-                try {
-                    // UI Loading State
-                    submitBtn.classList.add('loading');
-                    submitBtn.disabled = true;
-                    urlInput.disabled = true;
+                // Track analytics
+                trackEvent('Checkout Started', { url: url });
 
-                    // Store for post-payment webhook
-                    sessionStorage.setItem('pendingAuditUrl', url);
-                    sessionStorage.setItem('auditTimestamp', Date.now());
+                // UI Loading State
+                loadingOverlay.classList.add('active');
+                submitBtn.disabled = true;
+                urlInput.disabled = true;
 
-                    // Redirect to Stripe (Live Production)
-                    setTimeout(() => {
-                        const stripeUrl = `${STRIPE_LINK_BASE}?client_reference_id=${encodeURIComponent(url)}`;
-                        window.location.href = stripeUrl;
-                    }, 800);
+                // Store for post-payment webhook
+                sessionStorage.setItem('pendingAuditUrl', url);
+                sessionStorage.setItem('auditTimestamp', Date.now());
 
-                } catch (error) {
-                    // Reset UI on error
-                    submitBtn.classList.remove('loading');
-                    submitBtn.disabled = false;
-                    urlInput.disabled = false;
-                    alert('❌ Ett tekniskt fel uppstod. Vänligen försök igen eller kontakta support@nordsym.se');
-                    console.error('Form submission error:', error);
-                }
+                // Redirect to Stripe with metadata
+                setTimeout(() => {
+                    const stripeUrl = `${STRIPE_LINK_BASE}?client_reference_id=${encodeURIComponent(url)}`;
+                    window.location.href = stripeUrl;
+                }, 800);
             });
 
-            // --- SUCCESS HANDLER ---
+            // --- SUCCESS HANDLER (RETURN FROM STRIPE) ---
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('success') === 'true') {
-                const auditedUrl = sessionStorage.getItem('pendingAuditUrl') || "din webbplats";
-                document.getElementById('successUrl').textContent = auditedUrl;
-                successModal.classList.add('active');
-                
-                // Trigger Webhook with Retries
-                triggerWebhook(auditedUrl);
+                const auditedUrl = sessionStorage.getItem('pendingAuditUrl');
+                const timestamp = parseInt(sessionStorage.getItem('auditTimestamp'));
 
-                // Clean URL
-                window.history.replaceState({}, document.title, window.location.pathname);
+                // Session validation (1 hour expiry)
+                if (timestamp && (Date.now() - timestamp > 3600000)) {
+                    sessionStorage.clear();
+                    alert('Sessionen har gått ut. Vänligen starta om beställningen.');
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    return;
+                }
+
+                if (auditedUrl) {
+                    // Update UI
+                    document.getElementById('successUrl').textContent = auditedUrl;
+                    successModal.classList.add('active');
+                    
+                    // Track completion
+                    trackEvent('Payment Completed', { url: auditedUrl });
+
+                    // Trigger N8N Webhook (Backup Trigger)
+                    fetch(N8N_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: auditedUrl,
+                            timestamp: new Date().toISOString(),
+                            source: 'stripe_success_page',
+                            status: 'paid'
+                        })
+                    }).then(() => {
+                        console.log('✅ Webhook signal sent to n8n');
+                    }).catch(err => console.error('Webhook error:', err));
+
+                    // Clear Session
+                    sessionStorage.removeItem('pendingAuditUrl');
+                    sessionStorage.removeItem('auditTimestamp');
+
+                    // Clean URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } else {
+                    // Success param present but no stored URL
+                     console.warn('Success parameter present but no stored URL found.');
+                }
             }
         });
     </script>
